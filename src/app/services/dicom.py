@@ -26,6 +26,8 @@ def parse_dicom_bytes(raw_bytes: bytes) -> DicomMetadata:
 
     try:
         raw_pixels = dataset.pixel_array
+        # Enforce C-contiguous (row-major) memory layout for
+        # safe pointer arithmetic in downstream C/C++ extensions.
         contiguous_pixels = np.ascontiguousarray(raw_pixels)
     except (AttributeError, ValueError, RuntimeError) as err:
         raise DicomIngestionError("No valid pixel data in DICOM file.") from err
@@ -35,6 +37,8 @@ def parse_dicom_bytes(raw_bytes: bytes) -> DicomMetadata:
 
     try:
         return DicomMetadata(
+            # Handle DICOM Type 2 tags that may exist with a None or empty value,
+            # preventing str(None) from producing "None".
             patient_id=str(dataset.get("PatientID") or "UNKNOWN"),
             modality=str(dataset.get("Modality") or "UNKNOWN"),
             study_instance_uid=str(dataset.get("StudyInstanceUID") or ""),

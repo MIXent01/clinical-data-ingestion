@@ -10,6 +10,7 @@ class DicomMetadata(BaseModel):
 
     patient_id: str = Field(min_length=1, default="UNKNOWN")
     modality: str = Field(min_length=2, max_length=16, default="UNKNOWN")
+    # DICOM standard enforces a maximum length of 64 characters for UID values.
     study_instance_uid: str = Field(min_length=1, max_length=64)
     shape: tuple[PositiveDimension, ...] = Field(min_length=2)
     dtype: str = Field(min_length=1)

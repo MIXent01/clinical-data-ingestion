@@ -6,6 +6,8 @@ PositiveDimension = Annotated[int, Field(ge=1)]
 
 
 class DicomMetadata(BaseModel):
+    """Immutable domain model representing validated DICOM metadata and pixel statistics."""
+
     model_config = ConfigDict(strict=True, frozen=True, extra="forbid", str_strip_whitespace=True)
 
     patient_id: str = Field(min_length=1, default="UNKNOWN")
@@ -20,6 +22,8 @@ class DicomMetadata(BaseModel):
 
     @model_validator(mode="after")
     def check_c_contiguous_and_max_pixel_less_than_min_pixel(self) -> DicomMetadata:
+        """Validate pixel value bounds and C-contiguous memory layout."""
+
         if self.min_pixel_value > self.max_pixel_value:
             raise ValueError("max_pixel_value is less than min_pixel_value.")
         if not self.is_c_contiguous:

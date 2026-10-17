@@ -13,7 +13,18 @@ class DicomIngestionError(Exception):
 
 
 def parse_dicom_bytes(raw_bytes: bytes) -> DicomMetadata:
-    """Parse raw DICOM bytes in memory and extract metadata and pixel statistics."""
+    """Parse raw DICOM bytes in memory and extract metadata and pixel statistics.
+
+    Args:
+        raw_bytes: raw bytes of DICOM file.
+
+    Returns:
+        Pydantic v2 model named DicomMetadata which validates data of DICOM file.
+
+    Raises:
+        DicomIngestionError: If the byte stream is empty, cannot be parsed as DICOM,
+            lacks valid pixel data or fails domain validation.
+    """
 
     if not raw_bytes:
         raise DicomIngestionError("Empty DICOM byte stream provided.")

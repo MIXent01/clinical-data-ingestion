@@ -11,11 +11,14 @@ router = APIRouter()
 
 @router.get("/health")
 async def read_health() -> dict[str, str]:
+    """Verify that the microservice is alive and ready to accept requests."""
     return {"status": "ok"}
 
 
 @router.post("/api/v1/dicom/inspect")
 async def post_dicom(file: UploadFile) -> DicomMetadata:
+    """Inspect an uploaded DICOM file (up to 50 MB) and return validated metadata."""
+
     # Read at most MAX_FILE_SIZE_BYTES + 1 bytes to detect oversized payloads and prevent OOM.
     raw_bytes = await file.read(MAX_FILE_SIZE_BYTES + 1)
 

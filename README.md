@@ -2,7 +2,7 @@
 
 ![CI Status](https://github.com/MIXent01/clinical-data-ingestion/actions/workflows/ci.yml/badge.svg)
 
-Production-ready, in-memory microservice for validating clinical DICOM files (PS3.10), inspecting medical imaging metadata, and extracting raw pixel statistics without disk I/O overhead.
+Production-ready, in-memory microservice for validating clinical DICOM files (PS3.10), inspecting medical imaging metadata, and extracting raw pixel statistics without persistent disk storage.
 
 ## Key Engineering Decisions
 
@@ -12,6 +12,12 @@ Production-ready, in-memory microservice for validating clinical DICOM files (PS
 - **Strict Domain Validation:** Output contracts use an immutable Pydantic v2 model (`DicomMetadata`) with `strict=True`, `frozen=True`, `extra="forbid"`, finite float enforcement (`allow_inf_nan=False`), and DICOM standard 64-character UID limits.
 - **DICOM Type 2 Tag Resilience:** Missing or empty Type 2 tags (`PatientID`, `Modality`) safely fall back to `"UNKNOWN"`, preventing `str(None)` serialization bugs.
 - **Container Hardening:** Packaged in `python:3.14-slim` running under an unprivileged `appuser` account with exec-form `CMD` for clean `SIGTERM` handling.
+
+## Known Limitations & Trade-offs
+
+- **Peak Memory Multiplier (~2-3x):** Holding `raw_bytes` in memory while materializing `dataset.pixel_array` and enforcing `np.ascontiguousarray` (if a copy is required) results in a transient peak RAM footprint of up to ~150 MB per 50 MB payload.
+- **Multipart Spooled Buffering:** FastAPI's `UploadFile` buffers incoming `multipart/form-data` streams to a `SpooledTemporaryFile` prior to endpoint execution. While `file.read(MAX_FILE_SIZE_BYTES + 1)` prevents heap exhaustion during DICOM parsing, production deployments should enforce `client_max_body_size` at the ingress/reverse-proxy layer.
+- **Threadpool & GIL Contention:** Offloading `parse_dicom_bytes` via `run_in_threadpool` prevents blocking the `asyncio` event loop for I/O, though pure-Python header parsing in `pydicom` remains bound by the GIL (unlike downstream C-level NumPy reductions which release the GIL).
 
 ## Tech Stack
 

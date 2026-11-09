@@ -25,7 +25,7 @@ Production-ready, in-memory microservice for validating clinical DICOM files (PS
 - **API Framework:** FastAPI + Uvicorn (ASGI)
 - **Data Validation:** Pydantic v2
 - **Medical Imaging:** pydicom + NumPy
-- **Quality Assurance:** Pytest (`httpx2`), Mypy (strict mode), Ruff, GitHub Actions CI
+- **Quality Assurance:** Pytest (`httpx`), Mypy (strict mode), Ruff, GitHub Actions CI
 - **Containerization:** Docker
 
 ## API Reference
@@ -109,3 +109,9 @@ docker build -t clinical-dicom-pipeline:0.1.0 .
 docker run --rm -p 8000:8000 clinical-dicom-pipeline:0.1.0
 ```
 Interactive OpenAPI documentation is available at `http://localhost:8000/docs`.
+
+## Architecture Roadmap
+
+- [ ] **Zero-Copy C++ Binding:** Implement a C++20 kernel via `nanobind` consuming C-contiguous raw memory pointers directly for spatial filtering and Hounsfield Unit normalizations without Python runtime overhead.
+- [ ] **Reverse-Proxy Rate Limiting:** Introduce an Envoy/Nginx sidecar configuration enforcing streaming ingress limits and Slowloris mitigation at the TCP boundary.
+- [ ] **Direct Tensor Conversion:** Add zero-copy bridge to PyTorch tensors (`torch.from_numpy`) for direct batch feeding into 3D segmentation architectures.
